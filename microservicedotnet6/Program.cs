@@ -1,5 +1,6 @@
 ﻿using microservicedotnet6.Data;
 using microservicedotnet6.Models;
+using microservicedotnet6.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DbConnection");
 builder.Services.AddDbContext<EmployeeDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
 var app = builder.Build();
 
@@ -20,39 +22,27 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-
 app.MapGet("/", () => "Hello World!");
 
-app.MapPost("/employee", ([FromServices] EmployeeDbContext db, Employee employee) => {
-    db.Employee.Add(employee);
-    db.SaveChanges();
-    return db.Employee.ToList();
+app.MapGet("/employees", ([FromServices] IEmployeeRepository db) =>
+{
+    return db.GetEmployees();
 });
 
-app.MapGet("/employee", (Func<Employee>)(() =>
+app.MapGet("/employee/{id}", ([FromServices] IEmployeeRepository db, string id) =>
 {
-    return new Employee()
-    {
-        EmployeeId = new Guid().ToString(),
-        Name = "Robinson",
-        Citizenship = "Brazilian"
-    };
-}));
-
-app.MapGet("/employees", ([FromServices] EmployeeDbContext db) =>
-{
-    return db.Employee.ToList();
+    return db.GetEmployeeById(id);
 });
 
-//app.MapGet("/employee/{id}", async (http) =>
-//{
-//    if (!http.Request.RouteValues.TryGetValue("id", out var id))
-//    {
-//        http.Response.StatusCode = 400;
-//        return;
-//    }
-//    await http.Response.WriteAsJsonAsync(new EmployeeCollection().GetEmployees().FirstOrDefault(e => e.EmployeeId == (string)id));
-//});
+app.MapPost("/employee", ([FromServices] IEmployeeRepository db, Employee employee) =>
+{
+    return db.AddEmployee(employee);
+});
+
+app.MapPut("/employee", ([FromServices] IEmployeeRepository db, Employee employee) =>
+{
+    return db.PutEmployee(employee);
+});
+
 
 app.Run();
