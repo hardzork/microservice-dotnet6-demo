@@ -1,8 +1,12 @@
-﻿using microservicedotnet6.Models;
+﻿using microservicedotnet6.Data;
+using microservicedotnet6.Models;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+var connectionString = builder.Configuration.GetConnectionString("DbConnection");
+builder.Services.AddDbContext<EmployeeDbContext>(options => options.UseSqlServer(connectionString));
 
 var app = builder.Build();
 
@@ -29,19 +33,19 @@ app.MapGet("/employee", (Func<Employee>)(() =>
     };
 }));
 
-app.MapGet("/employees", (Func<List<Employee>>)(() =>
-{
-    return new EmployeeCollection().GetEmployees();
-}));
+//app.MapGet("/employees", (Func<List<Employee>>)(() =>
+//{
+//    return new EmployeeCollection().GetEmployees();
+//}));
 
-app.MapGet("/employee/{id}", async (http) =>
-{
-    if (!http.Request.RouteValues.TryGetValue("id", out var id))
-    {
-        http.Response.StatusCode = 400;
-        return;
-    }
-    await http.Response.WriteAsJsonAsync(new EmployeeCollection().GetEmployees().FirstOrDefault(e => e.EmployeeId == (string)id));
-});
+//app.MapGet("/employee/{id}", async (http) =>
+//{
+//    if (!http.Request.RouteValues.TryGetValue("id", out var id))
+//    {
+//        http.Response.StatusCode = 400;
+//        return;
+//    }
+//    await http.Response.WriteAsJsonAsync(new EmployeeCollection().GetEmployees().FirstOrDefault(e => e.EmployeeId == (string)id));
+//});
 
 app.Run();
