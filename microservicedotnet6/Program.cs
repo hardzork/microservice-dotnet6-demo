@@ -11,7 +11,11 @@ var connectionString = builder.Configuration.GetConnectionString("DbConnection")
 builder.Services.AddDbContext<EmployeeDbContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
+app.UseSwaggerUI();
 
 if (app.Environment.IsDevelopment())
 {
@@ -22,7 +26,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapGet("/", () => "Hello World!");
+app.UseSwagger(swagger => swagger.SerializeAsV2 = true);
 
 app.MapGet("/employees", ([FromServices] IEmployeeRepository db) =>
 {
