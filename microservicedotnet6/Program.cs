@@ -1,5 +1,6 @@
 ﻿using microservicedotnet6.Data;
 using microservicedotnet6.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,6 +24,12 @@ app.UseHttpsRedirection();
 
 app.MapGet("/", () => "Hello World!");
 
+app.MapPost("/employee", ([FromServices] EmployeeDbContext db, Employee employee) => {
+    db.Employee.Add(employee);
+    db.SaveChanges();
+    return db.Employee.ToList();
+});
+
 app.MapGet("/employee", (Func<Employee>)(() =>
 {
     return new Employee()
@@ -33,10 +40,10 @@ app.MapGet("/employee", (Func<Employee>)(() =>
     };
 }));
 
-//app.MapGet("/employees", (Func<List<Employee>>)(() =>
-//{
-//    return new EmployeeCollection().GetEmployees();
-//}));
+app.MapGet("/employees", ([FromServices] EmployeeDbContext db) =>
+{
+    return db.Employee.ToList();
+});
 
 //app.MapGet("/employee/{id}", async (http) =>
 //{
